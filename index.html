@@ -115,7 +115,6 @@
             border: 1px solid var(--footnote-popup-border);
             background-color: var(--footnote-popup-bg);
             transition: background-color 0.3s ease, border-color 0.3s ease;
-            min-width: 250px; /* Asegurar un ancho mínimo para EPUB.js */
         }
         .sepia-mode #viewer {
             background-color: #f4ecd8; 
@@ -147,7 +146,7 @@
         }
 
         /* Estilos para el modal de notas al pie */
-        .footnote-modal-content { 
+        .footnote-modal-content {
             max-width: 600px; 
             background-color: var(--footnote-popup-bg);
             color: var(--footnote-popup-text);
@@ -238,8 +237,9 @@
         .sepia-mode #modeToggle { background-color: #dcd0b3; color: #5b4636; }
         .sepia-mode #modeToggle:hover { background-color: #c8bca7; }
 
+        /* Contenedor de controles de fuente oculto por defecto */
         #fontControlsContainer {
-            display: none; 
+            display: none; /* Oculto por defecto */
             justify-content: center; 
             align-items: center;
             gap: 0.5rem; 
@@ -247,6 +247,7 @@
             flex-wrap: wrap; 
             padding: 0.5rem 0;
         }
+        /* No se necesita .collapsed ya que el contenedor principal maneja la visibilidad */
 
         #fontControlsGroup, #fontFamilyControls, #advancedFontControlsGroup { 
             background-color: var(--font-controls-bg);
@@ -262,7 +263,6 @@
         #viewerContainer {
             position: relative;
             flex-grow: 1; 
-            overflow: auto; /* Permitir scroll si #viewer es más grande */
         }
         #navigation {
             position: absolute; z-index: 10; top: 0; bottom: 0; left: 0; right: 0;
@@ -364,19 +364,21 @@
                 background-color: rgba(0,0,0,0.5); z-index: 1030;
             }
             #tocOverlay.open { display: block; }
-            #fontControlsContainer:not(body.epub-fullscreen #fontControlsContainer) {
+            /* #fontControlsToggleContainer ya no existe */
+            #fontControlsContainer:not(body.epub-fullscreen #fontControlsContainer) { /* Asegurar que esté oculto si no es fullscreen */
                  display: none !important;
             }
             body:not(.epub-fullscreen) #fontControlsGroup, 
             body:not(.epub-fullscreen) #fontFamilyControls,
             body:not(.epub-fullscreen) #advancedFontControlsGroup { 
-                 display: none !important;
+                 display: none !important; /* Ocultar también los grupos internos si no es fullscreen */
             }
         }
 
         @media (max-width: 768px) { 
+            /* Ajustes para controles de fuente en pantalla completa en móviles */
             body.epub-fullscreen #fontControlsContainer { 
-                gap: 0.5rem !important; 
+                gap: 0.5rem !important; /* Menos espacio en móviles */
                 padding: 0.2rem 0.3rem !important;
             }
             body.epub-fullscreen #fontControlsGroup, 
@@ -384,7 +386,7 @@
             body.epub-fullscreen #advancedFontControlsGroup { 
                 padding: 0.3rem !important; 
                 gap: 0.3rem !important; 
-                flex-direction: row !important; 
+                flex-direction: row !important; /* Mantener en fila si es posible */
             }
              body.epub-fullscreen #fontControlsContainer .btn-sm {
                 padding: 0.2rem 0.4rem !important; 
@@ -410,6 +412,7 @@
         }
         body.epub-fullscreen #appHeader, 
         body.epub-fullscreen #appFooter, 
+        /* #fontControlsToggleContainer eliminado */
         body.epub-fullscreen #locationDisplayContainer,
         body.epub-fullscreen #toggleTocButton { 
             display: none !important;
@@ -450,7 +453,7 @@
             flex-grow: 1 !important; 
             border: none !important;
             border-radius: 0 !important; 
-            overflow: auto; /* Permitir scroll si #viewer es más grande */
+            overflow: hidden;
         }
         body.epub-fullscreen #fontControlsContainer {
             display: flex !important; 
@@ -480,14 +483,6 @@
         body.epub-fullscreen #fontControlsContainer .text-sm {
             font-size: 0.7rem; 
             margin-right: 0.2rem;
-        }
-        #exitFullscreenLibraryButton { 
-            display: none; 
-        }
-        body.epub-fullscreen #libraryView #exitFullscreenLibraryButton {
-            display: inline-flex; 
-            align-items: center;
-            gap: 0.25rem;
         }
         #exitFullscreenBottomButton {
             display: none; 
@@ -572,6 +567,10 @@
             transition: width 0.3s ease;
         }
         
+        #textSelectionPopup {
+            /* Estilos eliminados ya que el elemento HTML fue removido */
+        }
+
     </style>
 </head>
 <body class="flex flex-col">
@@ -637,10 +636,12 @@
                 <button id="closeFootnoteModal" class="text-2xl font-bold leading-none hover:text-red-500 dark:hover:text-red-400" aria-label="Cerrar nota">&times;</button>
             </div>
             <div id="footnoteModalBody" class="modal-body prose dark:prose-invert max-w-none text-sm">
-                </div>
+                <!-- Contenido de la nota al pie se insertará aquí -->
+            </div>
         </div>
     </div>
-    
+
+
     <div id="readerAppContainer" class="flex-grow flex flex-col"> 
         <header id="appHeader" class="mb-6 p-4 bg-white rounded-lg shadow-md flex flex-col sm:flex-row justify-between items-center">
              <div class="flex items-center">
@@ -672,6 +673,7 @@
                     </svg>
                     <span id="fullscreenButtonText">Ampliar</span>
                 </button>
+                <button id="modeToggle" aria-label="Toggle dark mode">Modo</button>
                 <button id="logoutButton" class="btn btn-secondary btn-sm w-full sm:w-auto">Cerrar Sesión</button>
             </div>
         </header>
@@ -733,7 +735,6 @@
                                 <button id="textAlignJustify" class="btn btn-secondary btn-sm">Just.</button>
                             </div>
                         </div>
-                        <button id="modeToggle" aria-label="Toggle dark mode" class="btn btn-sm">Modo</button> 
                         <button id="exitFullscreenBottomButton" class="btn btn-sm btn-secondary flex items-center gap-1"> 
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" /></svg>
                             <span>Salir</span> 
@@ -746,19 +747,16 @@
             </main>
         </div>
 
-        <div id="libraryView" class="hidden flex-grow p-4 md:p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-200">Mi Biblioteca</h2>
-                <button id="exitFullscreenLibraryButton" class="btn btn-secondary btn-sm items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
-                    </svg>
-                    Salir de Pantalla Completa
-                </button>
-            </div>
+        <div id="libraryView" class="hidden flex-grow p-4 md:p-6 relative"> <!-- Added relative class -->
+            <button id="exitFullscreenLibraryButton" class="btn btn-secondary btn-sm fixed top-4 right-4 z-50 hidden items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" /></svg>
+                <span>Salir Pantalla Completa</span>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-gray-700 dark:text-gray-200">Mi Biblioteca</h2>
             <div id="libraryMessage" class="message-base mb-4"></div>
             <div id="libraryGrid" class="library-grid">
-                </div>
+                <!-- Los libros de la biblioteca se insertarán aquí -->
+            </div>
             <p id="emptyLibraryMessage" class="text-center text-gray-500 dark:text-gray-400 mt-8 hidden">
                 Tu biblioteca está vacía. Carga un EPUB para añadirlo.
             </p>
@@ -799,7 +797,7 @@
         const showRegisterModalButton = document.getElementById('showRegisterModal');
         const showLoginModalFromRegisterButton = document.getElementById('showLoginModalFromRegister');
         const welcomeMessage = document.getElementById('welcomeMessage');
-        const modeToggle = document.getElementById('modeToggle'); 
+        const modeToggle = document.getElementById('modeToggle');
         document.getElementById('year').textContent = new Date().getFullYear();
         const appLoadingSpinner = document.getElementById('appLoadingSpinner');
 
@@ -827,7 +825,7 @@
         const fullscreenIconClose = document.getElementById('fullscreenIconClose');
         const fullscreenButtonText = document.getElementById('fullscreenButtonText');
         const exitFullscreenBottomButton = document.getElementById('exitFullscreenBottomButton');
-        const exitFullscreenLibraryButton = document.getElementById('exitFullscreenLibraryButton'); 
+        const exitFullscreenLibraryButton = document.getElementById('exitFullscreenLibraryButton'); // New button
         
         const addBookmarkButton = document.getElementById('addBookmarkButton');
         const bookmarksList = document.getElementById('bookmarksList');
@@ -1056,7 +1054,7 @@
 
             if (bookData && bookData.bookmarks && bookData.bookmarks.length > 0) {
                 const ul = document.createElement('ul');
-                bookData.bookmarks.sort((a,b) => a.cfi.localeCompare(b.cfi)); // Ordenar por CFI
+                bookData.bookmarks.sort((a,b) => a.cfi.localeCompare(b.cfi)); 
                 bookData.bookmarks.forEach(bookmark => {
                     const li = document.createElement('li');
                     const textSpan = document.createElement('span');
@@ -1093,11 +1091,28 @@
                 bookmarksList.innerHTML = '<p class="text-gray-500 italic text-xs">No hay marcadores para este libro.</p>';
             }
         }
+        
+        function updateFullscreenButtonsVisibility() {
+            const isFullscreen = document.body.classList.contains('epub-fullscreen');
+            const isLibraryVisible = !libraryView.classList.contains('hidden');
+            
+            if (toggleFullscreenButton) {
+                fullscreenButtonText.textContent = isFullscreen ? 'Reducir' : 'Ampliar';
+                fullscreenIconOpen.classList.toggle('hidden', isFullscreen);
+                fullscreenIconClose.classList.toggle('hidden', !isFullscreen);
+            }
+
+            if (exitFullscreenLibraryButton) {
+                exitFullscreenLibraryButton.style.display = (isFullscreen && isLibraryVisible) ? 'flex' : 'none';
+            }
+        }
+
 
         function showReader() { 
              readerView.classList.remove('hidden');
              libraryView.classList.add('hidden');
              libraryViewLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.878V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 004.5 9v.878m13.5-3A2.25 2.25 0 0119.5 9v.878m0 0a2.246 2.246 0 00-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0121 12v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6c0-.98.626-1.813 1.5-2.122" /></svg><span>Biblioteca</span>`;
+             updateFullscreenButtonsVisibility();
              triggerRenditionResize(300); 
         }
         function showLibrary() { 
@@ -1105,6 +1120,7 @@
             libraryView.classList.remove('hidden');
             libraryViewLink.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg><span>Lector</span>`;
             renderLibraryView();
+            updateFullscreenButtonsVisibility();
         }
         libraryViewLink.addEventListener('click', () => {
             if (libraryView.classList.contains('hidden')) {
@@ -1125,7 +1141,7 @@
             }
             emptyLibraryMessage.classList.add('hidden');
 
-            library.sort((a,b) => (a.title || "").localeCompare(b.title || "")); // Ordenar por título
+            library.sort((a,b) => (a.title || "").localeCompare(b.title || "")); 
 
             library.forEach(bookItem => {
                 const itemDiv = document.createElement('div');
@@ -1135,7 +1151,7 @@
                 coverImg.className = 'library-item-cover';
                 coverImg.src = bookItem.coverImage || 'https://placehold.co/200x280/e0e0e0/777777?text=Sin+Portada'; 
                 coverImg.alt = `Portada de ${bookItem.title}`;
-                coverImg.onerror = function() { this.src = 'https://placehold.co/200x280/e0e0e0/777777?text=Error'; };
+                coverImg.onerror = function() { this.src = 'https://placehold.co/200x280/e0e0e0/777777?text=Cargar'; };
                 itemDiv.appendChild(coverImg);
 
                 const title = document.createElement('h3');
@@ -1201,7 +1217,6 @@
                 if (currentUser) {
                     welcomeMessage.textContent = `Bienvenido, ${currentUser.username || currentUser.email}!`;
                     loadUserPreferences();
-                    
                     applyCurrentMode(false); 
                     updateFontControlButtonsState(); 
                     updateAdvancedFontControlsUI(); 
@@ -1233,6 +1248,7 @@
             } else {
                 showLoginScreen();
             }
+            updateFullscreenButtonsVisibility(); // Ensure visibility is correct on initial load
             if(appLoadingSpinner) appLoadingSpinner.style.display = 'none';
         }
         function showLoginScreen() {
@@ -1257,6 +1273,7 @@
             updateAdvancedFontControlsUI();
             renderBookmarksForCurrentBook(); 
             enableReaderControls(false);
+            updateFullscreenButtonsVisibility(); // Ensure visibility is correct after logout/reset
         }
 
         showRegisterModalButton.addEventListener('click', () => {
@@ -1525,8 +1542,8 @@
                 try {
                     if (book && book.locations && book.locations.length() > 0) { 
                          percentage = book.locations.percentageFromCfi(currentCfi);
-                         const page = book.locations.locationFromCfi(currentCfi);
-                         locationDisplay.textContent = `Página: ${page !== undefined && page !== null ? page : '?'} (${Math.round(percentage * 100)}%)`;
+                        const page = book.locations.locationFromCfi(currentCfi);
+                        locationDisplay.textContent = `Página: ${page !== undefined && page !== null ? page : '?'} (${Math.round(percentage * 100)}%)`;
                     } else {
                          locationDisplay.textContent = `Ubicación: ${currentCfi.substring(8,30)}...`;
                     }
@@ -1545,6 +1562,7 @@
             rendition.on("displayed", (section) => { 
                 updateActiveTocItem(rendition.currentLocation());
             });
+
 
             book.ready.then(() => {
                 if (book.navigation && book.navigation.toc && book.navigation.toc.length > 0) {
@@ -1589,7 +1607,7 @@
                         setupRendition(e.target.result, cfiToLoad); 
                         showReader(); 
                         filenameToLoadFromLibrary = null; 
-                        cfiToLoadFromLibrary = null;    
+                        cfiToLoadFromLibrary = null;   
                     };
                     reader.readAsArrayBuffer(file);
                 } else {
@@ -1641,7 +1659,7 @@
         }
 
 
-        function applyReaderCustomizations(savePrefs = true, resizeDelay = 50) {
+        function applyReaderCustomizations(savePrefs = true) {
             if (!rendition || !rendition.manager) return; 
 
             rendition.themes.fontSize(userPreferences.fontSizePercent + '%');
@@ -1662,7 +1680,7 @@
                         rendition.resize();
                     }
                 });
-            }, resizeDelay); 
+            }, 50); 
         }
         
         function applyCurrentMode(save = true) { 
@@ -1693,9 +1711,9 @@
             document.documentElement.style.setProperty('--progress-bar-fill', isDark ? '#60a5fa' : (isSepia ? '#705a4b' : '#2563eb'));
             document.documentElement.style.setProperty('--bookmark-item-hover-bg', isDark ? '#374151' : (isSepia ? '#e9dfc7' : '#e5e7eb'));
 
-            if (rendition && rendition.manager) { 
+            if (rendition) {
                 rendition.themes.select(userPreferences.mode); 
-                applyReaderCustomizations(false, 150); 
+                applyReaderCustomizations(false); 
             }
             if (save) saveUserPreferences();
         }
@@ -1752,26 +1770,22 @@
         });
 
         function toggleFullscreenMode() {
-            const isFullscreen = document.body.classList.toggle('epub-fullscreen');
-            if (isFullscreen) {
-                fullscreenButtonText.textContent = 'Reducir';
-                fullscreenIconOpen.classList.add('hidden');
-                fullscreenIconClose.classList.remove('hidden');
-                tocNavigator.classList.remove('open'); 
-                tocOverlay.classList.remove('open');
+            document.body.classList.toggle('epub-fullscreen');
+            updateFullscreenButtonsVisibility();
+
+            if (!document.body.classList.contains('epub-fullscreen')) {
+                // Exiting fullscreen
+                tocNavigator.classList.remove('toc-fullscreen-open');
             } else {
-                fullscreenButtonText.textContent = 'Ampliar';
-                fullscreenIconOpen.classList.remove('hidden');
-                fullscreenIconClose.classList.add('hidden');
-                tocNavigator.classList.remove('toc-fullscreen-open'); 
+                // Entering fullscreen
+                 tocNavigator.classList.remove('open'); 
+                 tocOverlay.classList.remove('open');
             }
-            triggerRenditionResize(350); 
+            triggerRenditionResize(350);
         }
         toggleFullscreenButton.addEventListener('click', toggleFullscreenMode);
         exitFullscreenBottomButton.addEventListener('click', toggleFullscreenMode);
-        if (exitFullscreenLibraryButton) { 
-            exitFullscreenLibraryButton.addEventListener('click', toggleFullscreenMode);
-        }
+        exitFullscreenLibraryButton.addEventListener('click', toggleFullscreenMode); // Listener for new button
 
 
         addBookmarkButton.addEventListener('click', () => {
@@ -1794,6 +1808,7 @@
                 }
             }
         });
+
 
         function showCustomConfirm(message, callback) {
             const confirmModal = document.createElement('div');
